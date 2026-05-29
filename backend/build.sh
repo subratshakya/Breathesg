@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+# Render build script — runs on every deploy
+set -o errexit
+
+pip install -r requirements.txt
+
+python manage.py collectstatic --no-input
+python manage.py migrate
+
+# Seed database with demo data on first deploy (idempotent — purges and re-seeds)
+python manage.py seed_data
