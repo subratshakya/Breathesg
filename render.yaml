@@ -9,7 +9,7 @@ services:
   - type: web
     name: breathe-esg-api
     runtime: python
-    plan: free
+    plan: starter
     rootDir: backend
     buildCommand: "./build.sh"
     startCommand: "gunicorn breathe_esg.wsgi --bind 0.0.0.0:$PORT"
