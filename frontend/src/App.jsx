@@ -12,6 +12,82 @@ import {
 // Use relative path in production (same origin), env var for custom backends
 const API_BASE = import.meta.env.VITE_API_URL || '/api';
 
+// ─── DEMO MODE MOCK DATA ──────────────────────────────────────────────────────
+// Used automatically when the backend is unreachable (e.g. GitHub Pages demo)
+const MOCK_ORGS = [
+  { id: 1, name: 'Acme Industrial Corp' },
+  { id: 2, name: 'Global Tech Ventures' },
+];
+
+const MOCK_FACILITIES = [
+  { id: 1, plant_code: 'DE10', plant_name: 'Frankfurt Manufacturing', country: 'DE', city: 'Frankfurt', org_id: 1 },
+  { id: 2, plant_code: 'US20', plant_name: 'Houston Refinery', country: 'US', city: 'Houston', org_id: 1 },
+  { id: 3, plant_code: 'GB30', plant_name: 'London HQ', country: 'GB', city: 'London', org_id: 1 },
+  { id: 4, plant_code: 'SG01', plant_name: 'Singapore Data Centre', country: 'SG', city: 'Singapore', org_id: 2 },
+  { id: 5, plant_code: 'AU10', plant_name: 'Sydney Office', country: 'AU', city: 'Sydney', org_id: 2 },
+];
+
+const MOCK_RECORDS = [
+  { id: 1, transaction_date: '2026-05-10', scope_type: 'SCOPE_1', source_system: 'SAP', category: 'Diesel Combustion', description: 'Heavy vehicles fleet diesel — WERKS DE10', quantity: '18500.00', unit: 'L', co2e_emissions: '49.0830', status: 'APPROVED', plant_code: 'DE10', facility_details: { name: 'Frankfurt Manufacturing' }, org_id: 1 },
+  { id: 2, transaction_date: '2026-05-12', scope_type: 'SCOPE_1', source_system: 'SAP', category: 'Natural Gas', description: 'Boiler natural gas supply — WERKS DE10', quantity: '3800.00', unit: 'M3', co2e_emissions: '7.6760', status: 'DRAFT', plant_code: 'DE10', facility_details: { name: 'Frankfurt Manufacturing' }, org_id: 1 },
+  { id: 3, transaction_date: '2026-05-15', scope_type: 'SCOPE_2', source_system: 'UTILITY', category: 'Grid Electricity', description: 'ConEd electricity billing — April cycle (pro-rata split)', quantity: '115000.00', unit: 'kWh', co2e_emissions: '51.2950', status: 'DRAFT', plant_code: 'GB30', facility_details: { name: 'London HQ' }, org_id: 1 },
+  { id: 4, transaction_date: '2026-05-16', scope_type: 'SCOPE_1', source_system: 'SAP', category: 'Diesel Combustion', description: 'Diesel supply — WERKS JP90 (plant unregistered)', quantity: '8400.00', unit: 'L', co2e_emissions: '22.2768', status: 'FLAGGED', plant_code: 'JP90', facility_details: null, flag_reason: 'Plant JP90 Unresolved — not registered in facility master', org_id: 1 },
+  { id: 5, transaction_date: '2026-05-18', scope_type: 'SCOPE_3', source_system: 'TRAVEL', category: 'Air Travel (Business)', description: 'JFK → LHR Business Class — Sarah Jenkins', quantity: '5571.00', unit: 'km', co2e_emissions: '3.3426', status: 'DRAFT', plant_code: 'US20', facility_details: { name: 'Houston Refinery' }, org_id: 1 },
+  { id: 6, transaction_date: '2026-05-20', scope_type: 'SCOPE_3', source_system: 'TRAVEL', category: 'Hotel Stay', description: 'Intercontinental Berlin — 6 nights, Sarah Jenkins', quantity: '6.00', unit: 'nights', co2e_emissions: '0.1800', status: 'APPROVED', plant_code: 'DE10', facility_details: { name: 'Frankfurt Manufacturing' }, org_id: 1 },
+  { id: 7, transaction_date: '2026-04-10', scope_type: 'SCOPE_2', source_system: 'UTILITY', category: 'Grid Electricity (MWh)', description: 'ConEd high-demand billing cycle — anomaly flagged', quantity: '220.00', unit: 'MWh', co2e_emissions: '98.1200', status: 'FLAGGED', plant_code: 'US20', facility_details: { name: 'Houston Refinery' }, flag_reason: 'MWh > 100 baseline anomaly threshold', org_id: 1 },
+  { id: 8, transaction_date: '2026-03-22', scope_type: 'SCOPE_1', source_system: 'SAP', category: 'Diesel Combustion', description: 'Fleet diesel March — WERKS US20', quantity: '12000.00', unit: 'L', co2e_emissions: '31.8240', status: 'APPROVED', plant_code: 'US20', facility_details: { name: 'Houston Refinery' }, org_id: 1 },
+  // Org 2 records
+  { id: 9, transaction_date: '2026-05-14', scope_type: 'SCOPE_2', source_system: 'UTILITY', category: 'Grid Electricity', description: 'Singapore DC power billing Q2', quantity: '340000.00', unit: 'kWh', co2e_emissions: '151.6200', status: 'APPROVED', plant_code: 'SG01', facility_details: { name: 'Singapore Data Centre' }, org_id: 2 },
+  { id: 10, transaction_date: '2026-05-19', scope_type: 'SCOPE_3', source_system: 'TRAVEL', category: 'Air Travel (Economy)', description: 'SYD → SIN Economy — Alex Chen', quantity: '6300.00', unit: 'km', co2e_emissions: '1.0080', status: 'DRAFT', plant_code: 'AU10', facility_details: { name: 'Sydney Office' }, org_id: 2 },
+];
+
+const MOCK_ANALYTICS = (orgId) => {
+  const isOrg2 = orgId == 2;
+  return {
+    scopes: {
+      SCOPE_1: isOrg2 ? 4.21 : 110.96,
+      SCOPE_2: isOrg2 ? 151.62 : 149.59,
+      SCOPE_3: isOrg2 ? 1.01 : 3.52,
+    },
+    monthly_trend: [
+      { month: 'Feb 2026', scope1: isOrg2 ? 2.1 : 55.4, scope2: isOrg2 ? 72.3 : 68.2, scope3: isOrg2 ? 0.4 : 1.8 },
+      { month: 'Mar 2026', scope1: isOrg2 ? 3.2 : 78.1, scope2: isOrg2 ? 98.4 : 89.6, scope3: isOrg2 ? 0.6 : 2.1 },
+      { month: 'Apr 2026', scope1: isOrg2 ? 3.8 : 95.2, scope2: isOrg2 ? 120.1 : 112.4, scope3: isOrg2 ? 0.8 : 2.9 },
+      { month: 'May 2026', scope1: isOrg2 ? 4.2 : 111.0, scope2: isOrg2 ? 151.6 : 149.6, scope3: isOrg2 ? 1.0 : 3.5 },
+    ],
+    category_breakdown: isOrg2
+      ? [{ name: 'Electricity', value: 151.62 }, { name: 'Air Travel', value: 1.01 }, { name: 'Diesel', value: 4.21 }]
+      : [{ name: 'Diesel', value: 103.88 }, { name: 'Electricity', value: 149.59 }, { name: 'Air Travel', value: 3.34 }, { name: 'Hotels', value: 0.18 }],
+    facility_breakdown: isOrg2
+      ? [{ plant_code: 'SG01', co2e: 151.62 }, { plant_code: 'AU10', co2e: 1.01 }]
+      : [{ plant_code: 'DE10', co2e: 87.11 }, { plant_code: 'US20', co2e: 152.24 }, { plant_code: 'GB30', co2e: 51.30 }],
+    data_health: {
+      completeness_score: isOrg2 ? 50 : 37,
+      approved_count: isOrg2 ? 1 : 3,
+      flagged_count: isOrg2 ? 0 : 2,
+      draft_count: isOrg2 ? 1 : 3,
+    }
+  };
+};
+
+const MOCK_JOBS = [
+  { id: 1, source_type: 'SAP', status: 'COMPLETED', successful_rows: 4, failed_rows: 1, created_at: '2026-05-29T10:22:00Z', org_id: 1 },
+  { id: 2, source_type: 'UTILITY', status: 'COMPLETED', successful_rows: 2, failed_rows: 0, created_at: '2026-05-29T11:05:00Z', org_id: 1 },
+  { id: 3, source_type: 'TRAVEL', status: 'COMPLETED', successful_rows: 2, failed_rows: 0, created_at: '2026-05-29T11:30:00Z', org_id: 1 },
+];
+
+const MOCK_AUDIT_LOGS = [
+  { id: 1, record_id: 1, action: 'APPROVED', user: 'Jane Smith (Auditor)', audit_reason: 'Verified diesel invoice DE10 — correct WERKS assignment confirmed.', previous_values: { status: 'DRAFT' }, new_values: { status: 'APPROVED' }, created_at: '2026-05-29T12:10:00Z', org_id: 1 },
+  { id: 2, record_id: 4, action: 'EDITED', user: 'Jane Smith (Auditor)', audit_reason: 'Corrected plant code after invoice manual lookup — JP90 reassigned to DE10.', previous_values: { plant_code: 'JP90', status: 'FLAGGED' }, new_values: { plant_code: 'DE10', status: 'DRAFT' }, created_at: '2026-05-29T13:45:00Z', org_id: 1 },
+  { id: 3, record_id: 6, action: 'APPROVED', user: 'Jane Smith (Auditor)', audit_reason: 'Hotel booking verified against travel expense report.', previous_values: { status: 'DRAFT' }, new_values: { status: 'APPROVED' }, created_at: '2026-05-29T14:20:00Z', org_id: 1 },
+];
+
+let demoMode = false;
+let demoRecords = [...MOCK_RECORDS];
+let demoAuditLogs = [...MOCK_AUDIT_LOGS];
+let nextAuditId = 4;
+// ─────────────────────────────────────────────────────────────────────────────
+
 export default function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [organizations, setOrganizations] = useState([]);
@@ -68,7 +144,8 @@ export default function App() {
 
   const fetchOrganizations = async () => {
     try {
-      const res = await fetch(`${API_BASE}/organizations/`);
+      const res = await fetch(`${API_BASE}/organizations/`, { signal: AbortSignal.timeout(4000) });
+      if (!res.ok) throw new Error('API error');
       const data = await res.json();
       setOrganizations(data);
       if (data.length > 0) {
@@ -76,7 +153,11 @@ export default function App() {
         setOrgName(data[0].name);
       }
     } catch (err) {
-      console.error("Failed to load tenants", err);
+      // Fall back to demo mode
+      demoMode = true;
+      setOrganizations(MOCK_ORGS);
+      setSelectedOrgId(MOCK_ORGS[0].id);
+      setOrgName(MOCK_ORGS[0].name);
     }
   };
 
@@ -96,57 +177,78 @@ export default function App() {
   };
 
   const fetchAnalytics = async () => {
+    if (demoMode) { setAnalytics(MOCK_ANALYTICS(selectedOrgId)); return; }
     try {
-      const res = await fetch(`${API_BASE}/analytics/?org_id=${selectedOrgId}`);
+      const res = await fetch(`${API_BASE}/analytics/?org_id=${selectedOrgId}`, { signal: AbortSignal.timeout(4000) });
+      if (!res.ok) throw new Error('API error');
       const data = await res.json();
       setAnalytics(data);
     } catch (err) {
-      console.error(err);
+      demoMode = true;
+      setAnalytics(MOCK_ANALYTICS(selectedOrgId));
     }
   };
 
   const fetchRecords = async () => {
+    if (demoMode) {
+      let data = demoRecords.filter(r => r.org_id == selectedOrgId);
+      if (filters.status) data = data.filter(r => r.status === filters.status);
+      if (filters.scope) data = data.filter(r => r.scope_type === filters.scope);
+      if (filters.plant) data = data.filter(r => r.plant_code === filters.plant);
+      setRecords(data);
+      return;
+    }
     try {
       let url = `${API_BASE}/records/?org_id=${selectedOrgId}`;
       if (filters.status) url += `&status=${filters.status}`;
       if (filters.scope) url += `&scope=${filters.scope}`;
       if (filters.plant) url += `&plant_code=${filters.plant}`;
-      
-      const res = await fetch(url);
+      const res = await fetch(url, { signal: AbortSignal.timeout(4000) });
+      if (!res.ok) throw new Error('API error');
       const data = await res.json();
       setRecords(data);
     } catch (err) {
-      console.error(err);
+      demoMode = true;
+      setRecords(demoRecords.filter(r => r.org_id == selectedOrgId));
     }
   };
 
   const fetchJobs = async () => {
+    if (demoMode) { setJobs(MOCK_JOBS.filter(j => j.org_id == selectedOrgId)); return; }
     try {
-      const res = await fetch(`${API_BASE}/jobs/?org_id=${selectedOrgId}`);
+      const res = await fetch(`${API_BASE}/jobs/?org_id=${selectedOrgId}`, { signal: AbortSignal.timeout(4000) });
+      if (!res.ok) throw new Error('API error');
       const data = await res.json();
       setJobs(data);
     } catch (err) {
-      console.error(err);
+      demoMode = true;
+      setJobs(MOCK_JOBS.filter(j => j.org_id == selectedOrgId));
     }
   };
 
   const fetchFacilities = async () => {
+    if (demoMode) { setFacilities(MOCK_FACILITIES.filter(f => f.org_id == selectedOrgId)); return; }
     try {
-      const res = await fetch(`${API_BASE}/facilities/?org_id=${selectedOrgId}`);
+      const res = await fetch(`${API_BASE}/facilities/?org_id=${selectedOrgId}`, { signal: AbortSignal.timeout(4000) });
+      if (!res.ok) throw new Error('API error');
       const data = await res.json();
       setFacilities(data);
     } catch (err) {
-      console.error(err);
+      demoMode = true;
+      setFacilities(MOCK_FACILITIES.filter(f => f.org_id == selectedOrgId));
     }
   };
 
   const fetchAuditLogs = async () => {
+    if (demoMode) { setAuditLogs(demoAuditLogs.filter(l => l.org_id == selectedOrgId)); return; }
     try {
-      const res = await fetch(`${API_BASE}/audit-logs/?org_id=${selectedOrgId}`);
+      const res = await fetch(`${API_BASE}/audit-logs/?org_id=${selectedOrgId}`, { signal: AbortSignal.timeout(4000) });
+      if (!res.ok) throw new Error('API error');
       const data = await res.json();
       setAuditLogs(data);
     } catch (err) {
-      console.error(err);
+      demoMode = true;
+      setAuditLogs(demoAuditLogs.filter(l => l.org_id == selectedOrgId));
     }
   };
 
@@ -155,22 +257,43 @@ export default function App() {
     setUploading(true);
     setUploadError('');
     setUploadSuccess('');
+
+    // Demo mode: simulate ingestion without a real backend
+    if (demoMode) {
+      await new Promise(r => setTimeout(r, 900));
+      const newId = Date.now();
+      const rows = sourceType === 'SAP' ? 4 : sourceType === 'UTILITY' ? 2 : 2;
+      const newRecord = {
+        id: newId, transaction_date: new Date().toISOString().slice(0, 10),
+        scope_type: sourceType === 'UTILITY' ? 'SCOPE_2' : sourceType === 'TRAVEL' ? 'SCOPE_3' : 'SCOPE_1',
+        source_system: sourceType, category: sourceType === 'SAP' ? 'Diesel Combustion' : sourceType === 'UTILITY' ? 'Grid Electricity' : 'Air Travel (Economy)',
+        description: `[Demo] Simulated ${sourceType} feed — ${rows} records parsed`,
+        quantity: '5000.00', unit: sourceType === 'UTILITY' ? 'kWh' : sourceType === 'TRAVEL' ? 'km' : 'L',
+        co2e_emissions: (Math.random() * 50 + 5).toFixed(4), status: 'DRAFT',
+        plant_code: 'DE10', facility_details: { name: 'Frankfurt Manufacturing' }, org_id: selectedOrgId
+      };
+      demoRecords = [...demoRecords, newRecord];
+      addToast('success', `[Demo] Job #${newId} complete — ${rows} rows processed.`);
+      setUploadSuccess(`[Demo] ${rows} rows ingested. Data shown is simulated.`);
+      setIsDemoMode(true);
+      fetchAllData();
+      setUploading(false);
+      return;
+    }
+
     try {
       const formData = new FormData();
       formData.append('source_type', sourceType);
       formData.append('org_id', selectedOrgId);
-      
       const blob = new Blob([payloadStr], { type: 'text/plain' });
       const file = new File([blob], sourceType === 'TRAVEL' ? 'api_pull.json' : 'portal_export.csv');
       formData.append('file', file);
-
       const res = await fetch(`${API_BASE}/jobs/ingest/`, {
         method: 'POST',
         headers: { 'X-Organization-ID': selectedOrgId.toString() },
         body: formData
       });
       const data = await res.json();
-      
       if (res.ok) {
         addToast('success', `Ingestion Job #${data.id} complete — ${data.successful_rows} rows processed.`);
         setUploadSuccess(`Job #${data.id}: ${data.successful_rows} rows ingested successfully.`);
@@ -404,8 +527,30 @@ ConEd,ACT-55019,MTR-8819,04/15/2026,05/14/2026,220,MWh,480,US20`; // Triggers Wa
     '#a855f7'  // Purple
   ];
 
+  const [isDemoMode, setIsDemoMode] = React.useState(false);
+
+  // sync demoMode flag into state for reactive banner
+  React.useEffect(() => {
+    const timer = setTimeout(() => { if (demoMode) setIsDemoMode(true); }, 5000);
+    return () => clearTimeout(timer);
+  }, [organizations]);
+
   return (
     <div className="app-container">
+      {/* --- Demo Mode Banner --- */}
+      {isDemoMode && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, zIndex: 9999,
+          background: 'linear-gradient(90deg, #f59e0b, #d97706)',
+          color: '#000', padding: '8px 20px',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
+          fontSize: '13px', fontWeight: '600', letterSpacing: '0.03em'
+        }}>
+          <AlertTriangle size={15} />
+          DEMO MODE — Running with mock data. All charts, records, and audit trails are simulated.
+          <AlertTriangle size={15} />
+        </div>
+      )}
       {/* --- Sidebar Navigation --- */}
       <aside className="sidebar">
         <div className="brand">
