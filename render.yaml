@@ -1,6 +1,6 @@
 databases:
   - name: breathe-esg-db
-    plan: starter
+    plan: free
     databaseName: breathe_esg
     user: breathe_esg_user
 
@@ -9,7 +9,7 @@ services:
   - type: web
     name: breathe-esg-api
     runtime: python
-    plan: starter
+    plan: free
     rootDir: backend
     buildCommand: "./build.sh"
     startCommand: "gunicorn breathe_esg.wsgi --bind 0.0.0.0:$PORT"
@@ -31,7 +31,7 @@ services:
   - type: web
     name: breathe-esg-dashboard
     runtime: static
-    plan: starter
+    plan: free
     rootDir: frontend
     buildCommand: "npm install && npm run build"
     staticPublishPath: dist
