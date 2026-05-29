@@ -1,6 +1,6 @@
 databases:
   - name: breathe-esg-db
-    plan: free
+    plan: starter
     databaseName: breathe_esg
     user: breathe_esg_user
 
@@ -31,7 +31,7 @@ services:
   - type: web
     name: breathe-esg-dashboard
     runtime: static
-    plan: free
+    plan: starter
     rootDir: frontend
     buildCommand: "npm install && npm run build"
     staticPublishPath: dist
